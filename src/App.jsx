@@ -1,5 +1,6 @@
 import Hero from './components/Hero'
 import About from './components/About'
+import FoodList from './components/FoodList'
 import Menu from './components/Menu'
 import Chef from './components/Chef'
 import Testimonial from './components/Testimonial'
@@ -11,6 +12,7 @@ function App() {
     <div className="App">
       <Hero />
       <About />
+      <FoodList />
       <Menu />
       <Chef />
       <Testimonial />
