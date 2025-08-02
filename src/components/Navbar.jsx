@@ -31,9 +31,9 @@ const Navbar = () => {
       ease: "power2.out"
     });
 
-    // Animate navbar sliding in from top
+    // Animate navbar sliding in from right
     tl.to(navbarRef.current, {
-      y: 0,
+      x: 0,
       duration: 0.5,
       ease: "back.out(1.7)"
     }, "-=0.2");
@@ -69,12 +69,12 @@ const Navbar = () => {
     tl.fromTo(menuItemsRef.current.children,
       {
         opacity: 0,
-        y: 30,
-        scale: 0.9
+        x: 50,
+        scale: 0.8
       },
       {
         opacity: 1,
-        y: 0,
+        x: 0,
         scale: 1,
         duration: 0.5,
         stagger: 0.1,
@@ -91,8 +91,8 @@ const Navbar = () => {
     // Animate menu items out
     tl.to(menuItemsRef.current.children, {
       opacity: 0,
-      y: 30,
-      scale: 0.9,
+      x: 50,
+      scale: 0.8,
       duration: 0.3,
       stagger: 0.05,
       ease: "power2.in"
@@ -106,9 +106,9 @@ const Navbar = () => {
       ease: "power2.in"
     }, "-=0.2");
 
-    // Animate navbar sliding out to top
+    // Animate navbar sliding out to right
     tl.to(navbarRef.current, {
-      y: "-100%",
+      x: "100%",
       duration: 0.5,
       ease: "power2.in"
     }, "-=0.2");
@@ -197,24 +197,60 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Smooth scroll to section
+  // Smooth scroll to section with animation
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      // Close navbar immediately after navigation
-      setTimeout(() => {
-        if (isOpen) {
-          toggleNavbar();
-        }
-      }, 100);
+      // Animate the selected tab before scrolling
+      const selectedButton = menuItemsRef.current?.children[selectedTab];
+      if (selectedButton) {
+        gsap.to(selectedButton, {
+          scale: 1.1,
+          duration: 0.2,
+          ease: "power2.out",
+          yoyo: true,
+          repeat: 1,
+          onComplete: () => {
+            element.scrollIntoView({ behavior: 'smooth' });
+            // Close navbar after scrolling
+            setTimeout(() => {
+              if (isOpen) {
+                toggleNavbar();
+              }
+            }, 500);
+          }
+        });
+      } else {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+          if (isOpen) {
+            toggleNavbar();
+          }
+        }, 500);
+      }
     }
   };
 
-  // Handle tab click
+  // Handle tab click with animation
   const handleTabClick = (index, sectionId) => {
     setSelectedTab(index);
-    scrollToSection(sectionId);
+    
+    // Animate the clicked button
+    const clickedButton = menuItemsRef.current?.children[index];
+    if (clickedButton) {
+      gsap.to(clickedButton, {
+        scale: 1.05,
+        duration: 0.2,
+        ease: "power2.out",
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => {
+          scrollToSection(sectionId);
+        }
+      });
+    } else {
+      scrollToSection(sectionId);
+    }
   };
 
   return (
@@ -240,18 +276,18 @@ const Navbar = () => {
         onClick={toggleNavbar}
       />
 
-      {/* Full Page Navigation Menu */}
+      {/* Right Side Navigation Menu */}
       <nav
         ref={navbarRef}
-        className={`fixed inset-0 bg-pizza-green/95 backdrop-blur-md z-50 transition-transform duration-500 ${
-          isOpen ? 'translate-y-0' : '-translate-y-full'
+        className={`fixed top-0 right-0 h-full w-80 bg-pizza-green/95 backdrop-blur-md z-50 transform translate-x-full transition-transform duration-500 ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Close Button */}
         <button
           ref={closeBtnRef}
           onClick={handleClose}
-          className={`absolute top-6 right-6 z-60 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm border border-white/30 ${
+          className={`absolute top-6 left-6 z-60 w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm border border-white/30 ${
             isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-80'
           }`}
           aria-label="Close navigation menu"
@@ -259,41 +295,37 @@ const Navbar = () => {
           <span className="text-white text-2xl">✕</span>
         </button>
 
-        {/* Header */}
-        <div className="flex flex-col items-center justify-center h-full p-8">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center space-x-4 mb-6">
-              <span className="text-6xl">🍕</span>
-              <h1 className="text-5xl md:text-6xl font-lobster text-white">Pizza Palace</h1>
+        {/* Content Container */}
+        <div className="flex flex-col h-full p-6">
+          {/* Header */}
+          <div className="text-center mb-8 mt-16">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <span className="text-3xl">🍕</span>
+              <h1 className="text-2xl font-lobster text-white">Pizza Palace</h1>
             </div>
-            <p className="text-white/80 text-xl font-montserrat max-w-2xl mx-auto">
+            <p className="text-white/80 text-sm font-montserrat">
               Discover authentic Indian flavors alongside our signature pizzas
             </p>
           </div>
 
-          {/* Navigation Tabs - Horizontal Layout */}
-          <div ref={menuItemsRef} className="w-full max-w-6xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-              <div className="flex flex-wrap justify-center gap-4">
+          {/* Navigation Tabs */}
+          <div ref={menuItemsRef} className="flex-1">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="flex flex-col space-y-3">
                 {menuItems.map((item, index) => (
                   <button
                     key={item.id}
                     onClick={() => handleTabClick(index, item.id)}
                     onMouseEnter={() => setSelectedTab(index)}
-                    className={`group px-8 py-6 rounded-2xl text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-pizza-orange focus:ring-opacity-50 border-2 backdrop-blur-sm text-center min-w-[180px] ${
+                    className={`group w-full px-4 py-3 rounded-lg text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pizza-orange focus:ring-opacity-50 border backdrop-blur-sm text-center ${
                       selectedTab === index
-                        ? 'bg-pizza-orange text-white border-pizza-orange scale-110 shadow-xl'
+                        ? 'bg-pizza-orange text-white border-pizza-orange scale-105 shadow-lg'
                         : 'bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/40'
-                    } ${
-                      isOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
                     }`}
-                    style={{ 
-                      transitionDelay: isOpen ? `${index * 100}ms` : '0ms'
-                    }}
                     aria-selected={selectedTab === index}
                     tabIndex={isOpen ? 0 : -1}
                   >
-                    <span className={`font-bold font-montserrat text-xl ${
+                    <span className={`font-semibold font-montserrat text-base ${
                       selectedTab === index ? 'text-white' : 'text-white/90'
                     }`}>
                       {item.name}
@@ -303,22 +335,22 @@ const Navbar = () => {
               </div>
               
               {/* Keyboard Navigation Instructions */}
-              <div className="mt-6 text-center">
-                <p className="text-white/60 text-sm font-montserrat">
-                  Use ← → arrow keys to navigate, Enter to select, or click with mouse
+              <div className="mt-4 text-center">
+                <p className="text-white/60 text-xs font-montserrat">
+                  Use ← → arrow keys to navigate, Enter to select
                 </p>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-12 text-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-md mx-auto border border-white/20">
-              <div className="text-white/90 text-lg font-montserrat">
+          <div className="mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="text-white/90 text-xs font-montserrat">
                 <p className="font-semibold mb-2">Contact Us</p>
-                <p className="text-sm">📞 (555) 123-4567</p>
-                <p className="text-sm mt-1">🕒 Open daily 11AM-10PM</p>
-                <p className="text-sm mt-1">📍 123 Pizza Street, New York</p>
+                <p>📞 (555) 123-4567</p>
+                <p className="mt-1">🕒 Open daily 11AM-10PM</p>
+                <p className="mt-1">📍 123 Pizza Street, New York</p>
               </div>
             </div>
           </div>
